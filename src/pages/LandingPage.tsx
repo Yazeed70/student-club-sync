@@ -6,7 +6,7 @@ import { EventCarousel } from "@/components/EventCarousel";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ThemeToggle } from "@/components/ThemeProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Users, Calendar, Bell, Shield } from "lucide-react";
 
 const LandingPage: React.FC = () => {

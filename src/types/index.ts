@@ -1,4 +1,3 @@
-
 import { UserRole } from "@/contexts/AuthContext";
 
 export interface Club {
@@ -21,6 +20,7 @@ export interface Event {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   createdBy: string;
+  image?: string;
 }
 
 export interface Membership {

@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   username: string;
@@ -35,6 +36,12 @@ export interface Event {
   image?: string;
   category?: string;
   capacity: number;
+  clubId: string;
+  startDate: string;
+  endDate?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  createdBy: string;
 }
 
 export interface Notification {

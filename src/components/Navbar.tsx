@@ -53,8 +53,15 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Link to="/" className="font-bold text-xl">ClubSync</Link>
+            <div className="flex-shrink-0 flex items-center gap-2">
+              <Link to="/" className="flex items-center gap-2">
+                <img 
+                  src="/lovable-uploads/d003a95e-4257-41c4-8c51-52eff4acecff.png" 
+                  alt="IUBlaze Logo" 
+                  className="h-8 w-auto"
+                />
+                <span className="font-bold text-xl">IUBlaze</span>
+              </Link>
             </div>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">

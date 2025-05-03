@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     toast({
       title: "Registration successful!",
-      description: `Welcome to ClubSync, ${username}!`,
+      description: `Welcome to IUBlaze, ${username}!`,
     })
     navigate("/");
   };

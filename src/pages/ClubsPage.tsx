@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { SearchBar } from '@/components/SearchBar';
 import { SkeletonCard } from '@/components/SkeletonCard';
-import { Users, Filter } from 'lucide-react';
+import { Users, Filter, Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +46,8 @@ const ClubsPage: React.FC = () => {
     }
   };
 
+  const isClubLeader = user && user.role === 'club_leader';
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -60,25 +62,36 @@ const ClubsPage: React.FC = () => {
               onSearch={setSearchTerm}
               className="w-full sm:w-64"
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filter
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setFilter('all')}>
+                    All Clubs
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilter('joined')}>
+                    Joined Clubs
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilter('not-joined')}>
+                    Not Joined
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {(isClubLeader || (user?.role === 'administrator')) && (
+                <Button asChild className="btn-gradient">
+                  <Link to="/clubs/create">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Club
+                  </Link>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setFilter('all')}>
-                  All Clubs
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter('joined')}>
-                  Joined Clubs
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter('not-joined')}>
-                  Not Joined
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+            </div>
           </div>
         </div>
         
@@ -124,7 +137,13 @@ const ClubsPage: React.FC = () => {
                       <Link to={`/clubs/${club.id}`}>View Details</Link>
                     </Button>
                     
-                    {!isLeader && (
+                    {isLeader ? (
+                      <Button variant="outline" asChild>
+                        <Link to={`/clubs/manage/${club.id}`}>
+                          Manage
+                        </Link>
+                      </Button>
+                    ) : (
                       isMember ? (
                         <Button variant="secondary" disabled>
                           Joined

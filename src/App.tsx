@@ -20,6 +20,8 @@ import LandingPage from "./pages/LandingPage";
 import ProfilePage from "./pages/ProfilePage";
 import ApprovalsPage from "./pages/ApprovalsPage";
 import ReportsPage from "./pages/ReportsPage";
+import CreateClubPage from "./pages/CreateClubPage";
+import ManageClubPage from "./pages/ManageClubPage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/clubs" element={<ClubsPage />} />
+                <Route path="/clubs/create" element={<CreateClubPage />} />
+                <Route path="/clubs/manage/:id" element={<ManageClubPage />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/events/:id" element={<EventDetailsPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />

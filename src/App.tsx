@@ -24,12 +24,12 @@ import ReportsPage from "./pages/ReportsPage";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ThemeProvider defaultTheme="system">
-        <BrowserRouter>
-          <AuthProvider>
-            <ApiProvider>
+  <BrowserRouter>
+    <ThemeProvider defaultTheme="system">
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ApiProvider>
+            <TooltipProvider>
               <Toaster />
               <Sonner />
               <Routes>
@@ -46,12 +46,12 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </ApiProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </ThemeProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+            </TooltipProvider>
+          </ApiProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </BrowserRouter>
 );
 
 export default App;

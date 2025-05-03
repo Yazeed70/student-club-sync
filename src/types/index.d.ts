@@ -1,13 +1,47 @@
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: 'student' | 'club_leader' | 'administrator';
+  clubs: Club[];
+  events: Event[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Club {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  members: User[];
+  leaders: User[];
+  events: Event[];
+  joinRequests: User[];
+  createdAt: string;
+  updatedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
 
 export interface Event {
   id: string;
-  clubId: string;
   title: string;
   description: string;
-  startDate: string;
-  endDate?: string;
+  date: string;
+  time: string;
   location: string;
-  capacity?: number;
-  status: 'pending' | 'approved' | 'rejected';
+  club: Club;
+  attendees: User[];
   image?: string;
+  category?: string;
+  capacity: number;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

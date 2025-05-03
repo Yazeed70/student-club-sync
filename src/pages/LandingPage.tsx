@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { Hero } from "@/components/Hero";
@@ -24,11 +23,6 @@ const LandingPage: React.FC = () => {
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
-            <img 
-              src="/lovable-uploads/d003a95e-4257-41c4-8c51-52eff4acecff.png" 
-              alt="IUBlaze Logo" 
-              className="h-8 w-auto"
-            />
             <h1 className="text-xl font-bold">IUBlaze</h1>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -58,7 +52,7 @@ const LandingPage: React.FC = () => {
       </header>
       
       <main className="flex-1">
-        {/* Hero Section with Logo */}
+        {/* Hero Section */}
         <section className="py-20 bg-gradient-to-b from-background to-accent/30 dark:from-background dark:to-accent/10">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
@@ -91,13 +85,6 @@ const LandingPage: React.FC = () => {
               </div>
               <div className="mx-auto lg:mr-0 relative">
                 <div className="p-4 bg-background rounded-xl shadow-2xl dark:bg-card border animate-fade-in">
-                  <div className="flex justify-center mb-6">
-                    <img 
-                      src="/lovable-uploads/d003a95e-4257-41c4-8c51-52eff4acecff.png" 
-                      alt="IUBlaze Logo" 
-                      className="h-32 w-auto"
-                    />
-                  </div>
                   <div className="aspect-[16/9] rounded-lg bg-accent/20 overflow-hidden">
                     <img 
                       src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" 

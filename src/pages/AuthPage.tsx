@@ -23,7 +23,7 @@ const AuthPage: React.FC = () => {
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Button variant="ghost" className="font-bold text-xl" onClick={() => navigate('/landing')}>
-            ClubSync
+            IUBlaze
           </Button>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -33,7 +33,7 @@ const AuthPage: React.FC = () => {
 
       <div className="flex-1 flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-accent/30 dark:from-background dark:to-accent/10">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h1 className="text-center text-3xl font-bold text-foreground">ClubSync</h1>
+          <h1 className="text-center text-3xl font-bold text-foreground">IUBlaze</h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">
             Streamlining Student Club Management
           </p>
@@ -77,7 +77,7 @@ const AuthPage: React.FC = () => {
       <footer className="border-t py-4">
         <div className="container flex justify-center items-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ClubSync. All rights reserved.
+            © {new Date().getFullYear()} IUBlaze. All rights reserved.
           </p>
         </div>
       </footer>

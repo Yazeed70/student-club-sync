@@ -36,6 +36,9 @@ const EventsPage: React.FC = () => {
   // Calculate past events
   const pastEvents = approvedEvents.filter(event => new Date(event.startDate) <= new Date());
   
+  // Check if user is administrator
+  const isAdmin = user?.role === 'administrator';
+  
   // Filter events based on search term and filters
   const filterEvents = (eventsToFilter: typeof events) => {
     const filtered = eventsToFilter.filter(
@@ -67,7 +70,7 @@ const EventsPage: React.FC = () => {
   // Handle register for event with loading state
   const handleRegisterForEvent = async (eventId: string) => {
     setLoading(true);
-    if (user) {
+    if (user && !isAdmin) {
       await registerForEvent(eventId);
       setTimeout(() => {
         setLoading(false);
@@ -189,7 +192,11 @@ const EventsPage: React.FC = () => {
                               <Link to={`/events/${event.id}`}>View Details</Link>
                             </Button>
                             
-                            {isRegistered ? (
+                            {isAdmin ? (
+                              <Button variant="secondary" disabled className="flex-1">
+                                Admin View Only
+                              </Button>
+                            ) : isRegistered ? (
                               <Button variant="secondary" disabled className="flex-1">
                                 Registered
                               </Button>

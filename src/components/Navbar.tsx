@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, User, LogOut, Menu, X } from 'lucide-react';
@@ -55,11 +54,6 @@ const Navbar: React.FC = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center gap-2">
               <Link to="/" className="flex items-center gap-2">
-                <img 
-                  src="/lovable-uploads/d003a95e-4257-41c4-8c51-52eff4acecff.png" 
-                  alt="IUBlaze Logo" 
-                  className="h-8 w-auto"
-                />
                 <span className="font-bold text-xl">IUBlaze</span>
               </Link>
             </div>
@@ -131,7 +125,7 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile menu, show/hide based on menu state */}
+      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-navy-800">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">

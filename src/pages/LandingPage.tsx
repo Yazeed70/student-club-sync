@@ -170,7 +170,7 @@ const LandingPage: React.FC = () => {
               </div>
               <div className="mx-auto lg:ml-0 relative mt-8 lg:mt-0">
                 <div className="bg-background rounded-xl shadow-2xl overflow-hidden dark:bg-card border">
-                  <img alt="Students collaborating" loading="lazy" className="w-full h-auto aspect-[4/3] object-cover" src="/lovable-uploads/f4973532-fffa-444c-af67-88b563132c18.jpg" />
+                  <img alt="Students collaborating" loading="lazy" className="w-full h-auto aspect-[4/3] object-cover" src="/lovable-uploads/4beb61d6-5291-461f-af2d-9f3e925e5471.jpg" />
                 </div>
               </div>
             </div>

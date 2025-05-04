@@ -83,7 +83,7 @@ const LandingPage: React.FC = () => {
                     <div className="h-2 bg-primary/30 rounded"></div>
                   </div>
                 </div>
-                <div className="absolute -bottom-6 -right-6 bg-gradient-primary p-4 rounded-lg shadow-lg text-white font-medium animate-scale-in dark:bg-accent text-sm">
+                <div className="absolute -bottom-12 -right-1 bg-gradient-primary p-4 rounded-lg shadow-lg text-white font-medium animate-scale-in dark:bg-accent text-sm py-[16px]">
                   50+ Active Clubs
                 </div>
               </div>

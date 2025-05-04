@@ -7,23 +7,22 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Users, Calendar, Bell, Shield } from "lucide-react";
-
 const LandingPage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const {
+    isAuthenticated
+  } = useAuth();
   const navigate = useNavigate();
-  
+
   // Redirect if already authenticated
   if (isAuthenticated) {
     return <Navigate to="/" />;
   }
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       {/* Navigation */}
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">IUBlaze</h1>
+            <h1 className="text-xl font-bold">Blaze.IU</h1>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#features" className="transition-colors hover:text-foreground/80">
@@ -35,16 +34,10 @@ const LandingPage: React.FC = () => {
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button 
-              variant="outline" 
-              className="hidden md:flex"
-              onClick={() => navigate("/auth")}
-            >
+            <Button variant="outline" className="hidden md:flex" onClick={() => navigate("/auth")}>
               Sign In
             </Button>
-            <Button 
-              onClick={() => navigate("/auth")}
-            >
+            <Button onClick={() => navigate("/auth")}>
               Get Started
             </Button>
           </div>
@@ -67,31 +60,22 @@ const LandingPage: React.FC = () => {
                   Connect with clubs, discover events, and engage with your campus community. All in one place.
                 </p>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  {isAuthenticated ? (
-                    <Button size="lg" className="btn-gradient" onClick={() => navigate("/")}>
+                  {isAuthenticated ? <Button size="lg" className="btn-gradient" onClick={() => navigate("/")}>
                       Go to Dashboard
-                    </Button>
-                  ) : (
-                    <>
+                    </Button> : <>
                       <Button size="lg" className="btn-gradient" onClick={() => navigate("/auth")}>
                         Get Started
                       </Button>
                       <Button size="lg" variant="outline" onClick={() => navigate("/clubs")}>
                         Explore Clubs
                       </Button>
-                    </>
-                  )}
+                    </>}
                 </div>
               </div>
               <div className="mx-auto lg:mr-0 relative">
                 <div className="p-4 bg-background rounded-xl shadow-2xl dark:bg-card border animate-fade-in">
                   <div className="aspect-[16/9] rounded-lg bg-accent/20 overflow-hidden">
-                    <img 
-                      src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" 
-                      alt="Students at club event" 
-                      className="w-full h-full object-cover" 
-                      loading="lazy"
-                    />
+                    <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" alt="Students at club event" className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-2">
                     <div className="h-2 bg-primary/20 rounded"></div>
@@ -180,21 +164,13 @@ const LandingPage: React.FC = () => {
                 <p className="text-muted-foreground mb-6">
                   From event planning and member management to approval workflows and reporting, IUBlaze provides everything you need to run your student clubs efficiently.
                 </p>
-                <Button 
-                  onClick={() => navigate("/auth")}
-                  className="btn-gradient"
-                >
+                <Button onClick={() => navigate("/auth")} className="btn-gradient">
                   Join Our Community
                 </Button>
               </div>
               <div className="mx-auto lg:ml-0 relative mt-8 lg:mt-0">
                 <div className="bg-background rounded-xl shadow-2xl overflow-hidden dark:bg-card border">
-                  <img 
-                    src="https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" 
-                    alt="Students collaborating" 
-                    className="w-full h-auto object-cover aspect-[4/3]"
-                    loading="lazy"
-                  />
+                  <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" alt="Students collaborating" className="w-full h-auto object-cover aspect-[4/3]" loading="lazy" />
                 </div>
               </div>
             </div>
@@ -210,12 +186,7 @@ const LandingPage: React.FC = () => {
             <p className="mb-8 max-w-2xl mx-auto">
               Join thousands of students and clubs already using IUBlaze to manage their activities and events.
             </p>
-            <Button 
-              size="lg" 
-              variant="secondary"
-              onClick={() => navigate("/auth")}
-              className="animate-pulse hover:animate-none"
-            >
+            <Button size="lg" variant="secondary" onClick={() => navigate("/auth")} className="animate-pulse hover:animate-none">
               Get Started Today
             </Button>
           </div>
@@ -223,8 +194,6 @@ const LandingPage: React.FC = () => {
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default LandingPage;

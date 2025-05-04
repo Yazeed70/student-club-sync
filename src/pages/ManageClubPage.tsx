@@ -18,7 +18,7 @@ const ManageClubPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { getClub, updateClub, getClubMembers, createEvent, getUserClubs } = useApi();
+  const { getClub, updateClub, getClubMembers, createEvent, getUserClubs, handleJoinRequest, getClubJoinRequests } = useApi();
   
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
@@ -65,17 +65,15 @@ const ManageClubPage: React.FC = () => {
           const fetchedMembers = getClubMembers(id);
           setMembers(fetchedMembers);
           
-          // Mock join requests - in a real app this would come from the API
-          setJoinRequests([
-            { id: 'jr1', userId: 'user5', username: 'Jane Smith', requestDate: '2023-12-01T10:15:00Z' },
-            { id: 'jr2', userId: 'user7', username: 'Michael Johnson', requestDate: '2023-12-03T14:30:00Z' },
-          ]);
+          // Get join requests for this club
+          const clubJoinRequests = getClubJoinRequests(id);
+          setJoinRequests(clubJoinRequests);
         }
       } else {
         navigate('/clubs');
       }
     }
-  }, [id, getClub, user]);
+  }, [id, getClub, user, getClubMembers, getClubJoinRequests, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -171,7 +169,8 @@ const ManageClubPage: React.FC = () => {
         endDate: endDate.toISOString(),
         clubId: club.id,
         image: eventData.image,
-        capacity: Number(eventData.capacity)
+        capacity: Number(eventData.capacity),
+        createdBy: user.id // Adding the createdBy property
       });
       
       if (success) {
@@ -194,16 +193,29 @@ const ManageClubPage: React.FC = () => {
     }
   };
 
-  const handleApproveJoinRequest = (requestId: string) => {
-    // In a real app, this would call an API
-    setJoinRequests(prev => prev.filter(req => req.id !== requestId));
-    toast({ title: "Approved", description: "Member has been added to the club" });
+  const handleApproveJoinRequest = async (requestId: string) => {
+    // Call the API method to approve the request
+    const success = await handleJoinRequest(requestId, true);
+    if (success) {
+      // Update the local state
+      setJoinRequests(prev => prev.filter(req => req.id !== requestId));
+      // Refresh members list
+      if (id) {
+        const fetchedMembers = getClubMembers(id);
+        setMembers(fetchedMembers);
+      }
+      toast({ title: "Approved", description: "Member has been added to the club" });
+    }
   };
 
-  const handleRejectJoinRequest = (requestId: string) => {
-    // In a real app, this would call an API
-    setJoinRequests(prev => prev.filter(req => req.id !== requestId));
-    toast({ title: "Rejected", description: "Join request has been rejected" });
+  const handleRejectJoinRequest = async (requestId: string) => {
+    // Call the API method to reject the request
+    const success = await handleJoinRequest(requestId, false);
+    if (success) {
+      // Update the local state
+      setJoinRequests(prev => prev.filter(req => req.id !== requestId));
+      toast({ title: "Rejected", description: "Join request has been rejected" });
+    }
   };
 
   // If club not found or user not authorized

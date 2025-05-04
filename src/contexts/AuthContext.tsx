@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "@/components/ui/use-toast";
 
 export type UserRole = 'student' | 'club_leader' | 'administrator';
 
@@ -22,6 +22,7 @@ interface AuthContextProps {
   register: (username: string, email: string, password: string) => Promise<void>;
   signOut: () => void;
   logout: () => void;
+  updateUserRole: (userId: string, newRole: UserRole) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -33,6 +34,7 @@ const AuthContext = createContext<AuthContextProps>({
   register: async () => {},
   signOut: () => {},
   logout: () => {},
+  updateUserRole: async () => {},
 });
 
 interface AuthProviderProps {
@@ -70,28 +72,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     toast({
       title: "Login successful!",
       description: `Welcome, ${newUser.name}!`,
-    })
+    });
     navigate("/");
   };
 
   const login = async (email: string, password: string) => {
-    // Mock login implementation that uses signIn
-    // In a real app, you would verify credentials here
-    
     // Admin detection through email
     if (email.includes('admin')) {
       await signIn(email, 'administrator');
       return;
     }
     
-    // For non-admin users, determine if they're a club leader based on mock data
-    // This is simplified - in a real app, you would check if they have any approved clubs
-    const role = email.includes('leader') ? 'club_leader' : 'student';
-    await signIn(email, role);
+    // For non-admin users, all new logins that aren't registrations are students
+    await signIn(email, 'student');
   };
 
   const register = async (username: string, email: string, password: string) => {
-    // Mock register implementation - always register as student
+    // Admin cannot register - prevent admin registration
+    if (email.includes('admin')) {
+      toast({
+        title: "Registration failed",
+        description: "Administrator accounts cannot be registered. Please use an existing account or contact system administrator.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // All new users register as students only
     const newUser: User = {
       id: Math.random().toString(),
       email,
@@ -106,7 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     toast({
       title: "Registration successful!",
       description: `Welcome to IUBlaze, ${username}!`,
-    })
+    });
     navigate("/");
   };
 
@@ -118,8 +125,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
-    })
+    });
     navigate("/landing");
+  };
+  
+  // Method to update user role (e.g., when club is approved)
+  const updateUserRole = async (userId: string, newRole: UserRole): Promise<void> => {
+    if (user && user.id === userId) {
+      const updatedUser = { ...user, role: newRole };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      toast({
+        title: "Role updated",
+        description: `Your account has been updated to ${newRole.replace('_', ' ')}.`,
+      });
+    }
   };
   
   // Alias for signOut for better readability
@@ -134,6 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     signOut,
     logout,
+    updateUserRole,
   };
 
   return (

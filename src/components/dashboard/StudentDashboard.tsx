@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { EventsCalendar } from '@/components/EventsCalendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Calendar, Users, Book, ArrowRight, Plus, BookOpen } from 'lucide-react';
+import { Bell, Calendar, Users, Book, ArrowRight, Plus, BookOpen, Clock } from 'lucide-react';
 import RoleStatusBadge from '@/components/RoleStatusBadge';
 
 const StudentDashboard: React.FC = () => {

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { 
@@ -56,12 +55,16 @@ interface ApiContextType {
   // Report methods
   generateReport: (clubId: string, type: 'member' | 'event') => Promise<Report | null>;
   getClubReports: (clubId: string) => Report[];
+
+  // Join request methods
+  handleJoinRequest: (requestId: string, approved: boolean) => Promise<boolean>;
+  getClubJoinRequests: (clubId: string) => any[];
 }
 
 const ApiContext = createContext<ApiContextType | undefined>(undefined);
 
 export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, updateUserRole } = useAuth();
   const [clubs, setClubs] = useState<Club[]>(mockClubs);
   const [events, setEvents] = useState<Event[]>(mockEvents);
   const [memberships, setMemberships] = useState<Membership[]>(mockMemberships);
@@ -69,6 +72,7 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [approvals, setApprovals] = useState<Approval[]>(mockApprovals);
   const [reports, setReports] = useState<Report[]>([]);
+  const [joinRequests, setJoinRequests] = useState<any[]>([]);
 
   // Club methods
   const getClub = (id: string) => clubs.find(club => club.id === id);
@@ -76,6 +80,16 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Updated createClub to handle pending status and auto-join
   const createClub = async (club: Omit<Club, 'id' | 'createdAt' | 'leaderId' | 'status'>): Promise<boolean> => {
     if (!user) return false;
+    
+    // Admins cannot create clubs
+    if (user.role === 'administrator') {
+      toast({
+        title: 'Not allowed',
+        description: 'Administrators cannot create clubs',
+        variant: 'destructive',
+      });
+      return false;
+    }
     
     try {
       // Create new club with pending status
@@ -129,7 +143,7 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
   
-  // New method to approve club
+  // Enhanced approveClub to update user role
   const approveClub = async (clubId: string): Promise<boolean> => {
     if (!user || user.role !== 'administrator') return false;
     
@@ -145,9 +159,14 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       newClubs[clubIndex] = updatedClub;
       setClubs(newClubs);
       
-      // Update the user to club_leader role
-      // Note: In a real app, you'd update the user in the database
-      // For this mock, we just notify the user
+      // Update the user to club_leader role if they're not already
+      const clubCreator = club.leaderId;
+      
+      // Check if this user should be promoted to club leader
+      if (clubCreator) {
+        // Update the user's role in the auth context
+        updateUserRole(clubCreator, 'club_leader');
+      }
       
       // Notify the club creator
       createNotification(
@@ -238,10 +257,35 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Event methods
   const getEvent = (id: string) => events.find(event => event.id === id);
   
+  // Update event creation to enforce club leader validation
   const createEvent = async (event: Omit<Event, 'id' | 'createdAt' | 'status'>): Promise<boolean> => {
     if (!user) return false;
     
     try {
+      // Validate that user can create event for this club
+      const club = getClub(event.clubId);
+      if (!club) {
+        toast({
+          title: 'Club not found',
+          description: 'The specified club does not exist',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      // Check if user is the club leader and club is approved
+      const isClubLeader = club.leaderId === user.id;
+      const isClubApproved = club.status === 'approved';
+      
+      if (!isClubLeader || !isClubApproved) {
+        toast({
+          title: 'Not authorized',
+          description: 'You can only create events for approved clubs you lead',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
       const newEvent: Event = {
         ...event,
         id: `${events.length + 1}`,
@@ -260,6 +304,15 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       
       setApprovals([...approvals, newApproval]);
+      
+      // Notify administrators
+      const adminUsers = ['3']; // Mock admin IDs
+      adminUsers.forEach(adminId => {
+        createNotification(
+          adminId,
+          `New event "${newEvent.title}" for club "${club.name}" requires your approval.`
+        );
+      });
       
       toast({
         title: 'Event created',
@@ -323,8 +376,48 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const club = getClub(clubId);
       if (!club) return false;
       
+      // If administrator, prevent joining clubs
+      if (user.role === 'administrator') {
+        toast({
+          title: 'Not allowed',
+          description: 'Administrators cannot join clubs',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      // Check if club requires approval from leader
+      const isLeaderApprovedClub = club.status === 'approved' && 
+        getUserClubs(club.leaderId).some(c => c.status === 'approved');
+      
+      if (isLeaderApprovedClub && user.id !== club.leaderId) {
+        // Create join request instead of direct membership
+        const newRequest = {
+          id: `req_${Date.now()}`,
+          userId: user.id,
+          clubId,
+          username: user.username || user.name,
+          requestDate: new Date().toISOString(),
+        };
+        
+        setJoinRequests(prev => [...prev, newRequest]);
+        
+        // Notify club leader
+        createNotification(
+          club.leaderId,
+          `${user.username || user.name} has requested to join your club "${club.name}"`
+        );
+        
+        toast({
+          title: 'Request sent',
+          description: `Your request to join ${club.name} has been sent to the club leader.`,
+        });
+        return true;
+      }
+      
+      // If student joins a regular club or their own club, add them immediately
       const newMembership: Membership = {
-        id: `${memberships.length + 1}`,
+        id: `mem_${memberships.length + 1}`,
         userId: user.id,
         clubId,
         joinedAt: new Date().toISOString(),
@@ -335,6 +428,10 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       // Create notification
       createNotification(user.id, `You have successfully joined ${club.name}`);
       
+      toast({
+        title: 'Club joined',
+        description: `You have successfully joined ${club.name}`,
+      });
       return true;
     } catch (error) {
       toast({
@@ -685,6 +782,173 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const getClubReports = (clubId: string) => 
     reports.filter(r => r.clubId === clubId);
 
+  // Updated joinClub to handle join requests for club leaders
+  const joinClub = async (clubId: string): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      // Check if user is already a member
+      const existingMembership = memberships.find(
+        m => m.userId === user.id && m.clubId === clubId
+      );
+      
+      if (existingMembership) {
+        toast({
+          title: 'Already a member',
+          description: 'You are already a member of this club',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      const club = getClub(clubId);
+      if (!club) return false;
+      
+      // If administrator, prevent joining clubs
+      if (user.role === 'administrator') {
+        toast({
+          title: 'Not allowed',
+          description: 'Administrators cannot join clubs',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      // Check if club requires approval from leader
+      const isLeaderApprovedClub = club.status === 'approved' && 
+        getUserClubs(club.leaderId).some(c => c.status === 'approved');
+      
+      if (isLeaderApprovedClub && user.id !== club.leaderId) {
+        // Create join request instead of direct membership
+        const newRequest = {
+          id: `req_${Date.now()}`,
+          userId: user.id,
+          clubId,
+          username: user.username || user.name,
+          requestDate: new Date().toISOString(),
+        };
+        
+        setJoinRequests(prev => [...prev, newRequest]);
+        
+        // Notify club leader
+        createNotification(
+          club.leaderId,
+          `${user.username || user.name} has requested to join your club "${club.name}"`
+        );
+        
+        toast({
+          title: 'Request sent',
+          description: `Your request to join ${club.name} has been sent to the club leader.`,
+        });
+        return true;
+      }
+      
+      // If student joins a regular club or their own club, add them immediately
+      const newMembership: Membership = {
+        id: `mem_${memberships.length + 1}`,
+        userId: user.id,
+        clubId,
+        joinedAt: new Date().toISOString(),
+      };
+      
+      setMemberships([...memberships, newMembership]);
+      
+      // Create notification
+      createNotification(user.id, `You have successfully joined ${club.name}`);
+      
+      toast({
+        title: 'Club joined',
+        description: `You have successfully joined ${club.name}`,
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Failed to join club',
+        description: 'Something went wrong',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  // New method to handle join requests
+  const handleJoinRequest = async (requestId: string, approved: boolean): Promise<boolean> => {
+    if (!user) return false;
+    
+    const requestIndex = joinRequests.findIndex(req => req.id === requestId);
+    if (requestIndex === -1) return false;
+    
+    const request = joinRequests[requestIndex];
+    const club = getClub(request.clubId);
+    
+    if (!club) return false;
+    
+    // Check if current user is the club leader
+    if (club.leaderId !== user.id) {
+      toast({
+        title: 'Not authorized',
+        description: 'Only the club leader can approve or reject join requests',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    try {
+      // Remove the request
+      const newRequests = [...joinRequests];
+      newRequests.splice(requestIndex, 1);
+      setJoinRequests(newRequests);
+      
+      if (approved) {
+        // Create membership
+        const newMembership: Membership = {
+          id: `mem_${memberships.length + 1}`,
+          userId: request.userId,
+          clubId: request.clubId,
+          joinedAt: new Date().toISOString(),
+        };
+        
+        setMemberships([...memberships, newMembership]);
+        
+        // Notify requester
+        createNotification(
+          request.userId,
+          `Your request to join ${club.name} has been approved.`
+        );
+        
+        toast({
+          title: 'Request approved',
+          description: `${request.username} has been added to ${club.name}.`,
+        });
+      } else {
+        // Notify requester
+        createNotification(
+          request.userId,
+          `Your request to join ${club.name} has been rejected.`
+        );
+        
+        toast({
+          title: 'Request rejected',
+          description: `${request.username}'s request to join ${club.name} has been rejected.`,
+        });
+      }
+      
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Failed to handle request',
+        description: 'Something went wrong',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  // Method to get join requests for a specific club
+  const getClubJoinRequests = (clubId: string) => {
+    return joinRequests.filter(req => req.clubId === clubId);
+  };
+
   return (
     <ApiContext.Provider
       value={{
@@ -722,6 +986,8 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         getPendingClubs,
         generateReport,
         getClubReports,
+        handleJoinRequest, // New method
+        getClubJoinRequests, // New method
       }}
     >
       {children}

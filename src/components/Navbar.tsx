@@ -16,6 +16,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
+interface NavLink {
+  title: string;
+  path: string;
+  badge?: number; // Adding badge property to the interface
+}
+
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { getUserNotifications, getUserClubs, getPendingEvents, getPendingClubs } = useApi();
@@ -38,7 +44,7 @@ const Navbar: React.FC = () => {
   const getNavLinks = () => {
     if (!user) return [];
     
-    const links = [
+    const links: NavLink[] = [
       { title: 'Dashboard', path: '/' },
       { title: 'Clubs', path: '/clubs' },
       { title: 'Events', path: '/events' },

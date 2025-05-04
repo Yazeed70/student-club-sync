@@ -4,226 +4,381 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApi } from '@/contexts/ApiContext';
 import Layout from '@/components/Layout';
+import RoleStatusBadge from '@/components/RoleStatusBadge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Calendar, Clock, MapPin, Users, Loader2, ArrowLeft } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
+import { CalendarIcon, Clock, MapPin, Users, User, Calendar, ArrowLeft, Check } from 'lucide-react';
 import { Event, Club } from '@/types';
 
 const EventDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { getEvent, getClub, isUserRegistered, registerForEvent, unregisterFromEvent, getEventAttendees } = useApi();
+  const { 
+    getEvent, 
+    getClub, 
+    registerForEvent, 
+    unregisterFromEvent, 
+    isUserRegistered,
+    getEventAttendees
+  } = useApi();
   
-  const [loading, setLoading] = useState(false);
   const [event, setEvent] = useState<Event | null>(null);
   const [club, setClub] = useState<Club | null>(null);
-  const [attendeeCount, setAttendeeCount] = useState(0);
-  
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [attendees, setAttendees] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (id) {
+      // Get event details
       const fetchedEvent = getEvent(id);
       if (fetchedEvent) {
         setEvent(fetchedEvent);
-        const fetchedClub = getClub(fetchedEvent.clubId);
-        setClub(fetchedClub || null);
         
-        const attendees = getEventAttendees(fetchedEvent.id);
-        setAttendeeCount(attendees.length);
-      } else {
-        navigate('/events');
+        // Get associated club
+        const fetchedClub = getClub(fetchedEvent.clubId);
+        if (fetchedClub) {
+          setClub(fetchedClub);
+        }
+        
+        // Check if user is registered
+        if (user) {
+          setIsRegistered(isUserRegistered(user.id, id));
+        }
+        
+        // Get attendees count
+        const eventAttendees = getEventAttendees(id);
+        setAttendees(eventAttendees.length);
       }
     }
-  }, [id, getEvent, getClub, getEventAttendees, navigate]);
+  }, [id, user, getEvent, getClub, isUserRegistered, getEventAttendees]);
 
   const handleRegister = async () => {
-    if (!event || !user) return;
+    if (!user || !event) return;
     
     setLoading(true);
-    const success = await registerForEvent(event.id);
-    if (success) {
-      setAttendeeCount(prev => prev + 1);
+    try {
+      const success = await registerForEvent(event.id);
+      if (success) {
+        setIsRegistered(true);
+        setAttendees(prev => prev + 1);
+        toast({
+          title: "Success",
+          description: `You have registered for ${event.title}`,
+        });
+      }
+    } catch (error) {
+      console.error('Error registering for event:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleUnregister = async () => {
-    if (!event || !user) return;
+    if (!user || !event) return;
     
     setLoading(true);
-    const success = await unregisterFromEvent(event.id);
-    if (success) {
-      setAttendeeCount(prev => Math.max(0, prev - 1));
+    try {
+      const success = await unregisterFromEvent(event.id);
+      if (success) {
+        setIsRegistered(false);
+        setAttendees(prev => prev - 1);
+        toast({
+          title: "Success",
+          description: `You have unregistered from ${event.title}`,
+        });
+      }
+    } catch (error) {
+      console.error('Error unregistering from event:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (!event || !club) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+          <h1 className="text-3xl font-bold">Event not found</h1>
+          <p className="mt-4 text-muted-foreground">The event you are looking for does not exist.</p>
+          <Button className="mt-6" onClick={() => navigate('/events')}>
+            Back to Events
+          </Button>
         </div>
       </Layout>
     );
   }
 
-  const isRegistered = user ? isUserRegistered(user.id, event.id) : false;
   const eventDate = new Date(event.startDate);
   const eventEndDate = new Date(event.endDate);
   const isPastEvent = eventDate < new Date();
-  const capacity = event.capacity || 100;
+  const isClubLeader = user && club.leaderId === user.id;
+  const isAdmin = user?.role === 'administrator';
+  const canRegister = event.status === 'approved' && !isPastEvent && !isAdmin;
+  const atCapacity = event.capacity ? attendees >= event.capacity : false;
 
   return (
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <Button variant="outline" onClick={() => navigate('/events')} className="mb-6">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Events
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mb-4" 
+          onClick={() => navigate('/events')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back to Events
         </Button>
         
-        {/* Event Header */}
-        <div className="bg-accent/30 rounded-xl overflow-hidden mb-8">
-          <div className="h-64 bg-primary/10 relative">
-            {event.image ? (
-              <img 
-                src={event.image} 
-                alt={event.title} 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Calendar className="h-16 w-16 text-primary/30" />
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Event Main Content */}
+          <div className="md:w-2/3">
+            {/* Event Header */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="text-3xl font-bold">{event.title}</h1>
+                <RoleStatusBadge status={event.status} type="event" />
+              </div>
+              
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Badge 
+                  variant="outline" 
+                  className="cursor-pointer"
+                  onClick={() => navigate(`/clubs/${club.id}`)}
+                >
+                  {club.name}
+                </Badge>
+                
+                {isPastEvent ? (
+                  <Badge variant="secondary">Past Event</Badge>
+                ) : (
+                  <Badge variant="secondary">Upcoming</Badge>
+                )}
+              </div>
+            </div>
+            
+            {/* Event Image */}
+            {event.image && (
+              <div className="rounded-lg overflow-hidden mb-6 bg-muted">
+                <img 
+                  src={event.image} 
+                  alt={event.title} 
+                  className="w-full h-64 object-cover"
+                />
               </div>
             )}
             
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
-              <Badge className="mb-2">{club.name}</Badge>
-              <h1 className="text-3xl font-bold mb-1">{event.title}</h1>
-              <div className="flex flex-wrap gap-4 text-white/80">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>{eventDate.toLocaleDateString()}</span>
+            {/* Event Details */}
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">About This Event</h2>
+                <p className="whitespace-pre-line">{event.description}</p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    <div>
+                      <div className="font-medium">Date</div>
+                      <div className="text-sm text-muted-foreground">
+                        {eventDate.toLocaleDateString(undefined, { 
+                          weekday: 'long',
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" />
+                    <div>
+                      <div className="font-medium">Time</div>
+                      <div className="text-sm text-muted-foreground">
+                        {eventDate.toLocaleTimeString(undefined, { 
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })} - {eventEndDate.toLocaleTimeString(undefined, { 
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    <div>
+                      <div className="font-medium">Location</div>
+                      <div className="text-sm text-muted-foreground">
+                        {event.location}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    <div>
+                      <div className="font-medium">Attendees</div>
+                      <div className="text-sm text-muted-foreground">
+                        {attendees} {event.capacity ? `/ ${event.capacity}` : ''}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-primary" />
+                    <div>
+                      <div className="font-medium">Organized by</div>
+                      <div 
+                        className="text-sm text-primary hover:underline cursor-pointer"
+                        onClick={() => navigate(`/clubs/${club.id}`)}
+                      >
+                        {club.name}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-5 w-5 text-primary" />
+                    <div>
+                      <div className="font-medium">Created</div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(event.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>
-                    {eventDate.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })} - {eventEndDate.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  <span>{event.location}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>{attendeeCount} / {capacity} registered</span>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
           
-          <div className="p-6">
-            <div className="flex flex-col md:flex-row justify-between gap-4">
-              <div className="max-w-3xl">
-                <h2 className="text-xl font-bold mb-3">Event Description</h2>
-                <p className="text-muted-foreground mb-4">
-                  {event.description}
-                </p>
+          {/* Event Sidebar */}
+          <div className="md:w-1/3">
+            <Card className="mb-6 sticky top-24">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Event Registration</h2>
                 
-                <div className="flex items-center gap-2">
-                  <Badge variant={event.status === 'approved' ? 'outline' : event.status === 'pending' ? 'secondary' : 'destructive'}>
-                    {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                  </Badge>
-                  
-                  {event.status === 'pending' && (
-                    <span className="text-sm text-muted-foreground">
-                      This event is waiting for approval
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex flex-col items-center md:items-end">
-                <Card className="w-full md:w-60">
-                  <CardHeader>
-                    <CardTitle className="text-center">Registration</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="text-center">
-                      {isPastEvent ? (
-                        <Badge variant="secondary">Event has ended</Badge>
-                      ) : attendeeCount >= capacity && !isRegistered ? (
-                        <Badge variant="secondary">Event full</Badge>
-                      ) : isRegistered ? (
-                        <Badge className="bg-green-600">You're registered</Badge>
-                      ) : (
-                        <Badge variant="outline">{capacity - attendeeCount} spots left</Badge>
-                      )}
+                {/* Registration Status */}
+                {isRegistered && (
+                  <div className="flex items-center gap-2 mb-4 bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
+                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="text-green-700 dark:text-green-400">You're registered for this event</span>
+                  </div>
+                )}
+                
+                {/* Capacity Indicator */}
+                {event.capacity && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{attendees} registered</span>
+                      <span>{event.capacity - attendees} spots left</span>
                     </div>
-                    
-                    {!isPastEvent && (
+                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-primary h-full"
+                        style={{ width: `${(attendees / event.capacity) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Registration Button */}
+                {!isAdmin && event.status === 'approved' && (
+                  <div>
+                    {!isPastEvent ? (
                       isRegistered ? (
                         <Button 
-                          variant="outline" 
+                          variant="outline"
                           className="w-full"
                           onClick={handleUnregister}
                           disabled={loading}
                         >
-                          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                          Cancel Registration
+                          {loading ? "Processing..." : "Cancel Registration"}
                         </Button>
                       ) : (
                         <Button 
-                          className="w-full btn-gradient"
+                          className="w-full"
                           onClick={handleRegister}
-                          disabled={loading || attendeeCount >= capacity || event.status !== 'approved'}
+                          disabled={loading || atCapacity || !canRegister}
                         >
-                          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                          Register Now
+                          {loading ? "Processing..." : atCapacity ? "Event Full" : "Register for Event"}
                         </Button>
                       )
+                    ) : (
+                      <Button disabled className="w-full">
+                        Event has ended
+                      </Button>
                     )}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                  </div>
+                )}
+                
+                {/* Status Info */}
+                {event.status !== 'approved' && (
+                  <div className="bg-muted p-4 rounded-md mt-4">
+                    <h3 className="text-sm font-medium mb-1">Event Status</h3>
+                    <div className="flex items-center mb-2">
+                      <RoleStatusBadge status={event.status} type="event" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {event.status === 'pending' 
+                        ? 'This event is awaiting approval from administrators.'
+                        : 'This event has been rejected.'}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Club Info */}
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium mb-3">Organizer</h3>
+                  <div className="flex items-center gap-3 p-3 border rounded-md">
+                    <Avatar>
+                      <AvatarFallback>{club.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="font-medium">{club.name}</div>
+                      <div className="text-xs text-muted-foreground">{club.category}</div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate(`/clubs/${club.id}`)}
+                    >
+                      View
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Management Options */}
+                {(isClubLeader || isAdmin) && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h3 className="text-sm font-medium mb-3">Management Options</h3>
+                    <div className="space-y-3">
+                      {isClubLeader && (
+                        <Button variant="outline" className="w-full">
+                          Edit Event
+                        </Button>
+                      )}
+                      {isAdmin && event.status === 'pending' && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <Button variant="default" className="w-full">
+                            Approve
+                          </Button>
+                          <Button variant="destructive" className="w-full">
+                            Reject
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
-        
-        {/* Attendees Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Attendees ({attendeeCount} / {capacity})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
-              {[...Array(attendeeCount)].map((_, i) => (
-                <Avatar key={i}>
-                  <AvatarFallback>
-                    {String.fromCharCode(65 + i % 26)}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-              
-              {attendeeCount === 0 && (
-                <p className="text-muted-foreground">
-                  No one has registered for this event yet. Be the first!
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );

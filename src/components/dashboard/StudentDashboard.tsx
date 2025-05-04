@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { EventsCalendar } from '@/components/EventsCalendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, Calendar, Users, Book, ArrowRight, Plus, BookOpen } from 'lucide-react';
+import RoleStatusBadge from '@/components/RoleStatusBadge';
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -21,6 +22,10 @@ const StudentDashboard: React.FC = () => {
   const userEvents = user ? getUserEvents(user.id) : [];
   const notifications = user ? getUserNotifications(user.id) : [];
   const unreadNotifications = notifications.filter(n => !n.read);
+
+  // Check if user has any pending club requests
+  const pendingClubs = userClubs.filter(club => club.status === 'pending');
+  const hasPendingRequests = pendingClubs.length > 0;
 
   // Filter upcoming events
   const upcomingEvents = userEvents
@@ -40,12 +45,18 @@ const StudentDashboard: React.FC = () => {
               Explore clubs, find events, and connect with your campus community.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button onClick={() => navigate('/clubs')} className="btn-gradient">
+              <Button onClick={() => navigate('/clubs')} className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
                 Explore Clubs
               </Button>
               <Button variant="outline" onClick={() => navigate('/events')}>
                 Browse Events
               </Button>
+              {/* Show Create Club button directly if user is student */}
+              {user && user.role === 'student' && (
+                <Button variant="outline" onClick={() => navigate('/clubs/create')}>
+                  <Plus className="h-4 w-4 mr-1" /> Create Club
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -70,6 +81,28 @@ const StudentDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Pending Club Requests Alert */}
+      {hasPendingRequests && (
+        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-900/50">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+              </div>
+              <div>
+                <h3 className="font-medium">Club Request Pending</h3>
+                <p className="text-sm text-muted-foreground">
+                  You have {pendingClubs.length} club {pendingClubs.length === 1 ? 'request' : 'requests'} awaiting administrator approval
+                </p>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
+              View Status
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Dashboard Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -126,7 +159,10 @@ const StudentDashboard: React.FC = () => {
                           )}
                         </div>
                         <div className="p-3 flex-1">
-                          <h3 className="font-medium line-clamp-1">{club.name}</h3>
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium line-clamp-1">{club.name}</h3>
+                            <RoleStatusBadge status={club.status} type="club" />
+                          </div>
                           <p className="text-xs text-muted-foreground line-clamp-1">{club.category}</p>
                         </div>
                         <div className="pr-3">
@@ -151,9 +187,14 @@ const StudentDashboard: React.FC = () => {
                     <p className="text-muted-foreground">
                       You haven't joined any clubs yet.
                     </p>
-                    <Button onClick={() => navigate('/clubs')} className="btn-gradient mt-4">
-                      <Plus className="h-4 w-4 mr-1" /> Join Clubs
-                    </Button>
+                    <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
+                      <Button onClick={() => navigate('/clubs')} className="bg-gradient-to-r from-primary to-primary/80">
+                        <Users className="h-4 w-4 mr-1" /> Join Clubs
+                      </Button>
+                      <Button onClick={() => navigate('/clubs/create')} variant="outline">
+                        <Plus className="h-4 w-4 mr-1" /> Create Club
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -200,6 +241,14 @@ const StudentDashboard: React.FC = () => {
                           {unreadNotifications.length}
                         </Badge>
                       )}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => navigate('/clubs/create')}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Create New Club
                     </Button>
                   </div>
                 </CardContent>
@@ -260,7 +309,7 @@ const StudentDashboard: React.FC = () => {
                   <p className="text-muted-foreground">
                     You haven't registered for any upcoming events.
                   </p>
-                  <Button onClick={() => navigate('/events')} className="btn-gradient mt-4">
+                  <Button onClick={() => navigate('/events')} className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 mt-4">
                     <Plus className="h-4 w-4 mr-1" /> Browse Events
                   </Button>
                 </CardContent>

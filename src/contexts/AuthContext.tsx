@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast"
@@ -76,11 +77,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     // Mock login implementation that uses signIn
     // In a real app, you would verify credentials here
-    const role = 
-      email.includes('admin') ? 'administrator' : 
-      email.includes('leader') ? 'club_leader' : 'student';
     
-    await signIn(email, role as UserRole);
+    // Admin detection through email
+    if (email.includes('admin')) {
+      await signIn(email, 'administrator');
+      return;
+    }
+    
+    // For non-admin users, determine if they're a club leader based on mock data
+    // This is simplified - in a real app, you would check if they have any approved clubs
+    const role = email.includes('leader') ? 'club_leader' : 'student';
+    await signIn(email, role);
   };
 
   const register = async (username: string, email: string, password: string) => {

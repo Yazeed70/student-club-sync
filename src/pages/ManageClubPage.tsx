@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -172,9 +171,7 @@ const ManageClubPage: React.FC = () => {
         endDate: endDate.toISOString(),
         clubId: club.id,
         image: eventData.image,
-        capacity: Number(eventData.capacity),
-        date: eventData.date,
-        time: eventData.time,
+        capacity: Number(eventData.capacity)
       });
       
       if (success) {

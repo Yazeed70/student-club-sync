@@ -25,6 +25,11 @@ const ClubsPage: React.FC = () => {
   
   // Filter clubs based on search term and filter type
   const filteredClubs = clubs.filter((club) => {
+    // Only show approved clubs to regular users
+    if ((club.status !== 'approved') && (!user || user.role !== 'administrator')) {
+      return false;
+    }
+    
     const matchesSearch = club.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       club.description.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -83,7 +88,7 @@ const ClubsPage: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              {(isClubLeader || (user?.role === 'administrator')) && (
+              {user && (
                 <Button asChild className="btn-gradient">
                   <Link to="/clubs/create">
                     <Plus className="h-4 w-4 mr-2" />
@@ -126,7 +131,7 @@ const ClubsPage: React.FC = () => {
                   <CardHeader>
                     <CardTitle>{club.name}</CardTitle>
                     <CardDescription>
-                      Created on {new Date(club.createdAt).toLocaleDateString()}
+                      {club.category} • Created {new Date(club.createdAt).toLocaleDateString()}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

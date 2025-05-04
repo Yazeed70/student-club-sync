@@ -1,136 +1,148 @@
 
 import React, { useState } from 'react';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/components/ui/use-toast';
+import { EyeIcon, EyeOffIcon, Loader2 } from 'lucide-react';
 
-interface RegisterFormProps {
-  onToggleForm: () => void;
-}
-
-const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleForm }) => {
+export const RegisterForm: React.FC = () => {
   const { register } = useAuth();
+  const { toast } = useToast();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('student');
-  const [isLoading, setIsLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (password !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+    // Simple validation
+    if (!username || !email || !password) {
+      toast({
+        title: "Error",
+        description: "All fields are required",
+        variant: "destructive"
+      });
       return;
     }
     
-    setPasswordError('');
-    setIsLoading(true);
+    if (password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
-      await register(username, email, password, role);
+      setLoading(true);
+      await register(username, email, password);
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast({
+        title: "Registration failed",
+        description: "There was an error during registration",
+        variant: "destructive"
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(prev => !prev);
+  };
+
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="text-2xl">Register</CardTitle>
-        <CardDescription>
-          Create a new account to access the platform
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Create a password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            {passwordError && (
-              <p className="text-sm text-red-500">{passwordError}</p>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="username">Username</Label>
+        <Input
+          id="username"
+          placeholder="Enter your username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-0 h-full px-3"
+            onClick={togglePasswordVisibility}
+          >
+            {showPassword ? (
+              <EyeOffIcon className="h-4 w-4" />
+            ) : (
+              <EyeIcon className="h-4 w-4" />
             )}
-          </div>
-          <div className="space-y-2">
-            <Label>Role</Label>
-            <RadioGroup 
-              value={role} 
-              onValueChange={(value) => setRole(value as UserRole)}
-              className="flex flex-col space-y-1"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="student" id="student" />
-                <Label htmlFor="student">Student</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="club_leader" id="club_leader" />
-                <Label htmlFor="club_leader">Club Leader</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="administrator" id="administrator" />
-                <Label htmlFor="administrator">Administrator</Label>
-              </div>
-            </RadioGroup>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Register'}
+            <span className="sr-only">
+              {showPassword ? 'Hide password' : 'Show password'}
+            </span>
           </Button>
-          <div className="text-center text-sm">
-            Already have an account?{' '}
-            <Button variant="link" className="p-0 h-auto" onClick={onToggleForm} type="button">
-              Login
-            </Button>
-          </div>
-        </CardFooter>
-      </form>
-    </Card>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          placeholder="Confirm your password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
+      </div>
+      
+      <Button
+        type="submit"
+        className="w-full btn-gradient"
+        disabled={loading}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Creating Account...
+          </>
+        ) : (
+          "Create Account"
+        )}
+      </Button>
+      
+      <p className="text-sm text-muted-foreground text-center">
+        By registering, you'll automatically be enrolled as a student.
+      </p>
+    </form>
   );
 };
-
-export default RegisterForm;

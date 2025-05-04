@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import ClubsPage from "./pages/ClubsPage";
+import ClubDetailsPage from "./pages/ClubDetailsPage";
 import EventsPage from "./pages/EventsPage";
 import EventDetailsPage from "./pages/EventDetailsPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -38,6 +39,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/clubs" element={<ClubsPage />} />
+                <Route path="/clubs/:id" element={<ClubDetailsPage />} />
                 <Route path="/clubs/create" element={<CreateClubPage />} />
                 <Route path="/clubs/manage/:id" element={<ManageClubPage />} />
                 <Route path="/events" element={<EventsPage />} />

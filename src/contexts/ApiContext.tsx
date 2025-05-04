@@ -18,8 +18,10 @@ interface ApiContextType {
   
   // Club methods
   getClub: (id: string) => Club | undefined;
-  createClub: (club: Omit<Club, 'id' | 'createdAt'>) => Promise<boolean>;
+  createClub: (club: Omit<Club, 'id' | 'createdAt' | 'leaderId' | 'status'>) => Promise<boolean>;
   updateClub: (id: string, updates: Partial<Club>) => Promise<boolean>;
+  approveClub: (clubId: string) => Promise<boolean>;
+  rejectClub: (clubId: string) => Promise<boolean>;
   
   // Event methods
   getEvent: (id: string) => Event | undefined;
@@ -49,6 +51,7 @@ interface ApiContextType {
   approveEvent: (eventId: string, comment?: string) => Promise<boolean>;
   rejectEvent: (eventId: string, comment?: string) => Promise<boolean>;
   getPendingEvents: () => Event[];
+  getPendingClubs: () => Club[];
   
   // Report methods
   generateReport: (clubId: string, type: 'member' | 'event') => Promise<Report | null>;
@@ -70,20 +73,50 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Club methods
   const getClub = (id: string) => clubs.find(club => club.id === id);
   
-  const createClub = async (club: Omit<Club, 'id' | 'createdAt'>): Promise<boolean> => {
+  // Updated createClub to handle pending status and auto-join
+  const createClub = async (club: Omit<Club, 'id' | 'createdAt' | 'leaderId' | 'status'>): Promise<boolean> => {
     if (!user) return false;
     
     try {
+      // Create new club with pending status
       const newClub: Club = {
         ...club,
-        id: `${clubs.length + 1}`,
+        id: `club_${clubs.length + 1}`,
         createdAt: new Date().toISOString(),
+        leaderId: user.id, // User who creates the club is set as potential leader
+        status: 'pending', // All new clubs start as pending
       };
       
       setClubs([...clubs, newClub]);
+      
+      // Automatically add the creator as a member
+      const newMembership: Membership = {
+        id: `mem_${memberships.length + 1}`,
+        userId: user.id,
+        clubId: newClub.id,
+        joinedAt: new Date().toISOString(),
+      };
+      
+      setMemberships([...memberships, newMembership]);
+      
+      // Create notification for admin
+      const adminUsers = ['3']; // Mock admin IDs
+      adminUsers.forEach(adminId => {
+        createNotification(
+          adminId, 
+          `New club "${newClub.name}" was created and requires your approval.`
+        );
+      });
+      
+      // Create notification for user
+      createNotification(
+        user.id, 
+        `Your club "${newClub.name}" was created successfully and is pending admin approval.`
+      );
+      
       toast({
         title: 'Club created',
-        description: `${newClub.name} has been created successfully`,
+        description: `${newClub.name} has been created and is awaiting approval.`,
       });
       return true;
     } catch (error) {
@@ -95,6 +128,87 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return false;
     }
   };
+  
+  // New method to approve club
+  const approveClub = async (clubId: string): Promise<boolean> => {
+    if (!user || user.role !== 'administrator') return false;
+    
+    try {
+      const clubIndex = clubs.findIndex(club => club.id === clubId);
+      if (clubIndex === -1) return false;
+      
+      const club = clubs[clubIndex];
+      
+      // Update club status
+      const updatedClub = { ...club, status: 'approved' as const };
+      const newClubs = [...clubs];
+      newClubs[clubIndex] = updatedClub;
+      setClubs(newClubs);
+      
+      // Update the user to club_leader role
+      // Note: In a real app, you'd update the user in the database
+      // For this mock, we just notify the user
+      
+      // Notify the club creator
+      createNotification(
+        club.leaderId, 
+        `Your club "${club.name}" has been approved! You now have club leader privileges.`
+      );
+      
+      toast({
+        title: 'Club approved',
+        description: `${club.name} has been approved successfully.`,
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Failed to approve club',
+        description: 'Something went wrong',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+  
+  // New method to reject club
+  const rejectClub = async (clubId: string): Promise<boolean> => {
+    if (!user || user.role !== 'administrator') return false;
+    
+    try {
+      const clubIndex = clubs.findIndex(club => club.id === clubId);
+      if (clubIndex === -1) return false;
+      
+      const club = clubs[clubIndex];
+      
+      // Update club status
+      const updatedClub = { ...club, status: 'rejected' as const };
+      const newClubs = [...clubs];
+      newClubs[clubIndex] = updatedClub;
+      setClubs(newClubs);
+      
+      // Notify the club creator
+      createNotification(
+        club.leaderId, 
+        `Your club "${club.name}" has been rejected. Please contact administrators for more information.`
+      );
+      
+      toast({
+        title: 'Club rejected',
+        description: `${club.name} has been rejected.`,
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Failed to reject club',
+        description: 'Something went wrong',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  // Get pending clubs
+  const getPendingClubs = () => clubs.filter(club => club.status === 'pending');
   
   const updateClub = async (id: string, updates: Partial<Club>): Promise<boolean> => {
     try {
@@ -584,6 +698,8 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         getClub,
         createClub,
         updateClub,
+        approveClub,
+        rejectClub,
         getEvent,
         createEvent,
         updateEvent,
@@ -603,6 +719,7 @@ export const ApiProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         approveEvent,
         rejectEvent,
         getPendingEvents,
+        getPendingClubs,
         generateReport,
         getClubReports,
       }}

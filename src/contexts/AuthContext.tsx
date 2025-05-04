@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast"
@@ -10,7 +9,7 @@ export interface User {
   email: string;
   role: UserRole;
   name: string;
-  username?: string; // Added optional username property
+  username?: string;
 }
 
 interface AuthContextProps {
@@ -18,10 +17,10 @@ interface AuthContextProps {
   isAuthenticated: boolean;
   isLoading: boolean;
   signIn: (email: string, role: UserRole) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>; // Added login method
-  register: (username: string, email: string, password: string, role: UserRole) => Promise<void>; // Added register method
+  login: (email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<void>;
   signOut: () => void;
-  logout: () => void; // Added logout alias for signOut
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -29,10 +28,10 @@ const AuthContext = createContext<AuthContextProps>({
   isAuthenticated: false,
   isLoading: false,
   signIn: async () => {},
-  login: async () => {}, // Added login method
-  register: async () => {}, // Added register method
+  login: async () => {},
+  register: async () => {},
   signOut: () => {},
-  logout: () => {}, // Added logout alias for signOut
+  logout: () => {},
 });
 
 interface AuthProviderProps {
@@ -84,12 +83,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await signIn(email, role as UserRole);
   };
 
-  const register = async (username: string, email: string, password: string, role: UserRole) => {
-    // Mock register implementation
+  const register = async (username: string, email: string, password: string) => {
+    // Mock register implementation - always register as student
     const newUser: User = {
       id: Math.random().toString(),
       email,
-      role,
+      role: 'student', // All new users start as students
       name: username,
       username,
     };

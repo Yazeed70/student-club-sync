@@ -83,12 +83,6 @@ const CreateClubPage: React.FC = () => {
         description: clubData.description,
         category: clubData.category,
         logo: clubData.logo || undefined,
-        status: 'pending',
-        leaders: [],
-        members: [],
-        events: [],
-        joinRequests: [],
-        updatedAt: new Date().toISOString(),
       });
       
       if (success) {

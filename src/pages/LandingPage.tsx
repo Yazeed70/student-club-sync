@@ -50,9 +50,7 @@ const LandingPage: React.FC = () => {
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
-                <div className="inline-block rounded-lg bg-accent px-3 py-1 text-sm">
-                  Introducing IUBlaze
-                </div>
+                <div className="inline-block rounded-lg bg-accent px-3 py-1 text-sm">Introducing Blaze.IU</div>
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl xl:text-6xl/none">
                   Streamlining Student Club Management
                 </h1>
@@ -186,7 +184,7 @@ const LandingPage: React.FC = () => {
             <p className="mb-8 max-w-2xl mx-auto">
               Join thousands of students and clubs already using IUBlaze to manage their activities and events.
             </p>
-            <Button size="lg" variant="secondary" onClick={() => navigate("/auth")} className="animate-pulse hover:animate-none">
+            <Button size="lg" variant="secondary" onClick={() => navigate("/auth")} className="animate-pulse hover:animate-none bg-orange-300 hover:bg-orange-200">
               Get Started Today
             </Button>
           </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,24 +6,21 @@ import { RegisterForm } from '@/components/auth/RegisterForm';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-
 const AuthPage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const {
+    isAuthenticated
+  } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
   const navigate = useNavigate();
-  
+
   // Redirect if already authenticated
   if (isAuthenticated) {
     return <Navigate to="/" />;
   }
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Button variant="ghost" className="font-bold text-xl" onClick={() => navigate('/landing')}>
-            IUBlaze
-          </Button>
+          <Button variant="ghost" className="font-bold text-xl" onClick={() => navigate('/landing')}>Blaze.IU</Button>
           <div className="flex items-center gap-2">
             <ThemeToggle />
           </div>
@@ -33,7 +29,8 @@ const AuthPage: React.FC = () => {
 
       <div className="flex-1 flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-accent/30 dark:from-background dark:to-accent/10">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h1 className="text-center text-3xl font-bold text-foreground">IUBlaze</h1>
+          <h1 className="text-center text-3xl font-bold text-foreground">Blaze.IU
+        </h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">
             Streamlining Student Club Management
           </p>
@@ -48,21 +45,14 @@ const AuthPage: React.FC = () => {
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {showLogin ? "Don't have an account?" : "Already have an account?"}
-                  <button
-                    className="ml-1 text-primary hover:underline focus:outline-none"
-                    onClick={() => setShowLogin(!showLogin)}
-                  >
+                  <button className="ml-1 text-primary hover:underline focus:outline-none" onClick={() => setShowLogin(!showLogin)}>
                     {showLogin ? 'Sign up' : 'Sign in'}
                   </button>
                 </p>
               </div>
             </div>
 
-            {showLogin ? (
-              <LoginForm onToggleForm={() => setShowLogin(false)} />
-            ) : (
-              <RegisterForm onToggleForm={() => setShowLogin(true)} />
-            )}
+            {showLogin ? <LoginForm onToggleForm={() => setShowLogin(false)} /> : <RegisterForm onToggleForm={() => setShowLogin(true)} />}
           </div>
           
           <p className="mt-4 text-center text-sm text-muted-foreground">
@@ -81,8 +71,6 @@ const AuthPage: React.FC = () => {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default AuthPage;

@@ -19,6 +19,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
+        heading: ["Inter", "sans-serif"], // Added heading font definition
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

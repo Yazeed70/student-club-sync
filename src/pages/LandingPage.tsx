@@ -177,9 +177,7 @@ const LandingPage: React.FC = () => {
             <h2 className="text-3xl font-bold tracking-tighter mb-4">
               Ready to Transform Your Club Experience?
             </h2>
-            <p className="mb-8 max-w-2xl mx-auto">
-              Join thousands of students and clubs already using IUBlaze to manage their activities and events.
-            </p>
+            <p className="mb-8 max-w-2xl mx-auto">Join thousands of students and clubs already using Blaze.IU to manage their activities and events.</p>
             <Button size="lg" variant="secondary" onClick={() => navigate("/auth")} className="animate-pulse hover:animate-none bg-orange-300 hover:bg-orange-200">
               Get Started Today
             </Button>

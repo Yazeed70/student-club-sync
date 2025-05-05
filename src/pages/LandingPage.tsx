@@ -156,12 +156,8 @@ const LandingPage: React.FC = () => {
                 <h2 className="text-3xl font-bold tracking-tighter mb-4">
                   Connecting Students, Empowering Clubs
                 </h2>
-                <p className="text-muted-foreground mb-4">
-                  IUBlaze is designed to streamline the management of student clubs and events on campus. Our platform makes it easy for students to discover and join clubs, while providing club leaders with powerful tools to manage their organizations.
-                </p>
-                <p className="text-muted-foreground mb-6">
-                  From event planning and member management to approval workflows and reporting, IUBlaze provides everything you need to run your student clubs efficiently.
-                </p>
+                <p className="text-muted-foreground mb-4">Blaze.IU is designed to streamline the management of student clubs and events on campus. Our platform makes it easy for students to discover and join clubs, while providing club leaders with powerful tools to manage their organizations.</p>
+                <p className="text-muted-foreground mb-6">From event planning and member management to approval workflows and reporting, Blaze.IU provides everything you need to run your student clubs efficiently.</p>
                 <Button onClick={() => navigate("/auth")} className="btn-gradient">
                   Join Our Community
                 </Button>
